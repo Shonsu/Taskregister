@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Taskregister.Server.Persistance;
 
@@ -11,9 +12,11 @@ using Taskregister.Server.Persistance;
 namespace Taskregister.Server.Migrations
 {
     [DbContext(typeof(TaskRegisterDbContext))]
-    partial class TaskRegisterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240624164212_AddCreateAtAndRenameColumn")]
+    partial class AddCreateAtAndRenameColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

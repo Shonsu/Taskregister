@@ -9,56 +9,58 @@ namespace Taskregister.Server.Task.Services;
 
 public interface ITaskService
 {
-    //Task<int> ChangeTaskStatus(string userEmail, int taskId, State state);
+    Task<int> ChangeTaskState(string userEmail, int taskId, State state);
     Task<int> CreateTaskAsync(CreateTaskDto createTaskDto, string userEmail);
     System.Threading.Tasks.Task DeleteTaskAsync(string userEmail, int taskId);
     Task<int> ExtendEndDate(string userEmail, int taskId, ExtendBy days);
+    Task<Entities.Task> GetTaskForUser(string userEmail, int taskId);
     System.Threading.Tasks.Task UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId);
-    // Task<Entities.Task> GetTaskById(int taskId);
+
 }
 
 public class TaskService(IUserRepository userRepository, ITaskRepository taskRepository) : ITaskService
 {
-    //public async Task<int> ChangeTaskStatus(string userEmail, int taskId, State state)
-    //{
-    //    var user = await userRepository.GetUserAsync(userEmail);
-    //    if (user is null)
-    //    {
-    //        throw new NotFoundException(nameof(User.Entities.User), userEmail);
-    //    }
-    //    var task = user.Tasks.SingleOrDefault(t => t.Id == taskId);
+    public async Task<int> ChangeTaskState(string userEmail, int taskId, State state)
+    {
+        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
 
-    //    if (task is null)
-    //    {
-    //        throw new NotSupportedException($"User with {userEmail} doesn't have task with {taskId} id.");
-    //    }
-    //    if (task.State is not State.COMPLETED)
-    //    {
-    //        task.State = state;
-    //    }
-    //    return task.Id;
-    //}
+        State? newState = task.State switch
+        {
+            State.NEW or State.RESUMED => state == State.COMPLETED ? State.COMPLETED : null,
+            State.COMPLETED => state == State.RESUMED ? State.RESUMED : null,
+            _ => null
+        };
+
+        if (newState is not null)
+        {
+            task.State = (State)newState;
+            task.DateState = DateTime.Now;
+            if (newState == State.RESUMED)
+            {
+                task.EndDate = CalculateEndDate(task.Type, DateTime.Now);
+            }
+        }
+        await taskRepository.SaveChangesAsync();
+        return task.Id;
+    }
 
     public async Task<int> CreateTaskAsync(CreateTaskDto createTaskDto, string userEmail)
     {
         var user = await userRepository.GetUserAsync(userEmail);
+        var createAt = DateTime.Now;
 
         if (user is null)
         {
             throw new NotFoundException(nameof(User.Entities.User), userEmail);
         }
-        var endDate = createTaskDto.Type switch
-        {
-            TaskType.TYPE_1 => DateTime.Now.AddDays((double)TaskType.TYPE_1),
-            TaskType.TYPE_2 => DateTime.Now.AddDays((double)TaskType.TYPE_2),
-            TaskType.TYPE_3 => DateTime.Now.AddDays((double)TaskType.TYPE_3),
-            _ => throw new ArgumentOutOfRangeException(nameof(createTaskDto.Type), $"Not expected task type value: {createTaskDto.Type}"),
-        };
+
+        DateTime endDate = CalculateEndDate(createTaskDto.Type, createAt);
 
         var task = new Entities.Task()
         {
             Type = createTaskDto.Type,
             Priority = createTaskDto.Priority,
+            CreateAt = createAt,
             EndDate = endDate,
             State = State.NEW,
             DateState = DateTime.Now,
@@ -70,9 +72,10 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
         return task.Id;
     }
 
+
     public async System.Threading.Tasks.Task DeleteTaskAsync(string userEmail, int taskId)
     {
-        Entities.Task? task = await GetTaskByUserEmailAndTaskId(userRepository, userEmail, taskId);
+        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
 
         if (task!.State is not State.COMPLETED)
         {
@@ -86,38 +89,47 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
 
     public async Task<int> ExtendEndDate(string userEmail, int taskId, ExtendBy days)
     {
-        Entities.Task? task = await GetTaskByUserEmailAndTaskId(userRepository, userEmail, taskId);
+        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
         if (task!.State == State.COMPLETED)
         {
-            throw new NotSupportedException($"Can't modify comleted task with {taskId} id.");
+            throw new NotSupportedException($"Can't modify completed task with {taskId} id.");
         }
         task!.EndDate = task!.EndDate.AddDays(days.days);
-        task.ChangeStateRationale = days.extendByDayRationale;
+        task.ChangeEndDateRationale = days.extendByDayRationale;
         await taskRepository.SaveChangesAsync();
         return task.Id;
     }
 
     public async System.Threading.Tasks.Task UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId)
     {
-        Entities.Task? task = await GetTaskByUserEmailAndTaskId(userRepository, userEmail, taskId);
+        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
 
         if (task!.State == State.COMPLETED)
         {
-            throw new NotSupportedException($"Can't update comleted task with {taskId} id.");
+            throw new NotSupportedException($"Can't update completed task with {taskId} id.");
         }
 
-        if (task.State is not State.COMPLETED && updateTaskDto.State is not State.RESUMED)
+        if (task.Type != updateTaskDto.Type)
         {
-            task.State = updateTaskDto.State;
-            task.DateState = DateTime.Now;
+            task.Type = updateTaskDto.Type;
+            task.EndDate = CalculateEndDate(task.Type, task.CreateAt);
         }
-
-        task.Type = updateTaskDto.Type;
         task.Priority = updateTaskDto.Priority;
         await taskRepository.SaveChangesAsync();
 
     }
-    private async Task<Entities.Task?> GetTaskByUserEmailAndTaskId(IUserRepository userRepository, string userEmail, int taskId)
+    private static DateTime CalculateEndDate(TaskType type, DateTime createAt)
+    {
+        return type switch
+        {
+            TaskType.TYPE_1 => createAt.AddDays((double)TaskType.TYPE_1),
+            TaskType.TYPE_2 => createAt.AddDays((double)TaskType.TYPE_2),
+            TaskType.TYPE_3 => createAt.AddDays((double)TaskType.TYPE_3),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), $"Not expected task type value: {type}"),
+        };
+    }
+
+    private async Task<Entities.Task> GetTaskByUserEmailAndTaskId( string userEmail, int taskId)
     {
         var user = await userRepository.GetUserAsync(userEmail);
         if (user is null)
@@ -130,5 +142,10 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
             throw new NotSupportedException($"User with {userEmail} doesn't have task with {taskId} id.");
         }
         return task;
+    }
+
+    public async Task<Entities.Task> GetTaskForUser(string userEmail, int taskId)
+    {
+        return await GetTaskByUserEmailAndTaskId(userEmail, taskId);
     }
 }

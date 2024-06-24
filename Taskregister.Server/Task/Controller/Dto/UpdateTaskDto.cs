@@ -6,7 +6,7 @@ namespace Taskregister.Server.Task.Controller.Dto
     {
         public TaskType Type { get; set; }
         public Priority Priority { get; set; }
-        public State State { get; set; }
+        //public State State { get; set; }
         public string? Description { get; set; }
     }
 }

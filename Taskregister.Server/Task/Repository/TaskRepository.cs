@@ -6,6 +6,7 @@ namespace Taskregister.Server.Task.Repository
     {
         Task<int> CreateTask(Entities.Task task);
         Task<Entities.Task?> GetTaskByIdAsync(int taskId);
+        //Task<Entities.Task?> GetTaskByUserIdAndTaskIdAsync(int userId, int taskId);
         System.Threading.Tasks.Task SaveChangesAsync();
         System.Threading.Tasks.Task Delete(Task.Entities.Task task);
     }
@@ -29,6 +30,12 @@ namespace Taskregister.Server.Task.Repository
         {
             return await dbContext.Tasks.FindAsync(taskId);
         }
+
+        //public Task<Entities.Task?> GetTaskByUserIdAndTaskIdAsync(int userId, int taskId)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
         public async System.Threading.Tasks.Task SaveChangesAsync() => await dbContext.SaveChangesAsync();
     }
 }
