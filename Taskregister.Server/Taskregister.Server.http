@@ -1,0 +1,6 @@
+@Taskregister.Server_HostAddress = http://localhost:5250
+
+GET {{Taskregister.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
