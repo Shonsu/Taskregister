@@ -1,4 +1,6 @@
-﻿using Taskregister.Server.Persistance;
+﻿using Microsoft.EntityFrameworkCore;
+using Taskregister.Server.Persistance;
+using Taskregister.Server.Task.Controller.Dto;
 
 namespace Taskregister.Server.Task.Repository
 {
@@ -6,9 +8,10 @@ namespace Taskregister.Server.Task.Repository
     {
         Task<int> CreateTask(Entities.Task task);
         Task<Entities.Task?> GetTaskByIdAsync(int taskId);
-        //Task<Entities.Task?> GetTaskByUserIdAndTaskIdAsync(int userId, int taskId);
+        Task<Entities.Task?> GetTaskByUserIdAndTaskIdAsync(int userId, int taskId);
         System.Threading.Tasks.Task SaveChangesAsync();
         System.Threading.Tasks.Task Delete(Task.Entities.Task task);
+        Task<IEnumerable<Entities.Task>> GetAllMatchingTaskForUser(User.Entities.User user, QueryParameters parameters);
     }
 
     public class TaskRepository(TaskRegisterDbContext dbContext) : ITaskRepository
@@ -26,15 +29,29 @@ namespace Taskregister.Server.Task.Repository
             await dbContext.SaveChangesAsync();
         }
 
+        public async Task<IEnumerable<Entities.Task>> GetAllMatchingTaskForUser(User.Entities.User user, QueryParameters parameters)
+        {
+
+            IQueryable<Entities.Task> tasks = dbContext.Tasks.Where(t => t.UserId == user.Id).AsQueryable();
+
+            tasks = tasks.Where(t => parameters.priority == null || t.Priority.Equals(parameters.priority));
+            tasks = tasks.Where(t => parameters.taskType == null || t.Type.Equals(parameters.taskType));
+            tasks = tasks.Where(t => parameters.from == null || t.EndDate >= parameters.from!.Value.ToDateTime(new TimeOnly(0, 0)));
+            tasks = tasks.Where(t => parameters.to == null || t.EndDate < parameters.to!.Value.ToDateTime(new TimeOnly(0, 0)).AddDays(1));
+
+
+            return await tasks.ToListAsync();
+        }
+
         public async Task<Entities.Task?> GetTaskByIdAsync(int taskId)
         {
             return await dbContext.Tasks.FindAsync(taskId);
         }
 
-        //public Task<Entities.Task?> GetTaskByUserIdAndTaskIdAsync(int userId, int taskId)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public async Task<Entities.Task?> GetTaskByUserIdAndTaskIdAsync(int userId, int taskId)
+        {
+            return await dbContext.Tasks.Where(t=>t.Id==taskId && t.UserId == userId).SingleOrDefaultAsync();
+        }
 
         public async System.Threading.Tasks.Task SaveChangesAsync() => await dbContext.SaveChangesAsync();
     }

@@ -2,26 +2,21 @@
 using Taskregister.Server.Task.Services.Dto;
 using Taskregister.Server.Task.Services;
 using Taskregister.Server.Task.Controller.Dto;
-using Taskregister.Server.User.Repository;
-using Taskregister.Server.Exceptions;
 using Taskregister.Server.Task.Contstants;
 
 namespace Taskregister.Server.Task.Controller;
 
 [ApiController]
 [Route("api/")]
-public class TaskController(ITaskService taskService, IUserRepository userRepository) : ControllerBase
+public class TaskController(ITaskService taskService) : ControllerBase
 {
 
     [HttpGet("{userEmail}/[controller]")]
-    public async Task<ActionResult<IEnumerable<Entities.Task>>> GetAllTasks([FromRoute] string userEmail)
+    public async Task<ActionResult<IEnumerable<Entities.Task>>> GetAllTasks([FromRoute] string userEmail, [FromQuery] QueryParameters query)
     {
-        var user = await userRepository.GetUserAsync(userEmail);
-        if (user == null)
-        {
-            throw new NotFoundException(nameof(Server.User.Entities.User), userEmail);
-        }
-        return Ok(user.Tasks);
+        var tasks = await taskService.GetTasksForUser(userEmail, query);
+
+        return Ok(tasks);
     }
 
     [HttpGet("{userEmail}/[controller]/{taskId}")]

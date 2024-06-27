@@ -27,7 +27,7 @@ public class UserRepository(TaskRegisterDbContext dbContext) : IUserRepository
 
     public async Task<Entities.User?> GetUserAsync(string email)
     {
-        return await dbContext.Users.Include(u=>u.Tasks).Where(u=>u.Email.Equals(email)).SingleOrDefaultAsync();
+        return await dbContext.Users.Where(u=>u.Email.Equals(email)).SingleOrDefaultAsync(); // Include(u=>u.Tasks).
     }
 
     public async Task<int> GetUserIdByEmailAsync(string userEmail)

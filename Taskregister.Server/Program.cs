@@ -22,9 +22,18 @@ builder.Services.AddScoped<ITaskService, TaskService>();
 var appliactionAssembly = typeof(Program).Assembly;
 builder.Services.AddValidatorsFromAssembly(appliactionAssembly).AddFluentValidationAutoValidation();
 //builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options=>options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));   
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
 
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod();
+        });
+});
 var app = builder.Build();
 
+app.UseCors("AllowSpecificOrigin");
 app.UseDefaultFiles();
 app.UseStaticFiles();
 

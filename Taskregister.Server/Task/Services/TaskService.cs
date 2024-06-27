@@ -14,6 +14,7 @@ public interface ITaskService
     System.Threading.Tasks.Task DeleteTaskAsync(string userEmail, int taskId);
     Task<int> ExtendEndDate(string userEmail, int taskId, ExtendBy days);
     Task<Entities.Task> GetTaskForUser(string userEmail, int taskId);
+    Task<IEnumerable<Entities.Task>> GetTasksForUser(string userEmail, QueryParameters parameters);
     System.Threading.Tasks.Task UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId);
 
 }
@@ -136,7 +137,7 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
         {
             throw new NotFoundException(nameof(User.Entities.User), userEmail);
         }
-        var task = user.Tasks.SingleOrDefault(t => t.Id == taskId);
+        var task = await taskRepository.GetTaskByUserIdAndTaskIdAsync(user.Id, taskId);
         if (task is null)
         {
             throw new NotSupportedException($"User with {userEmail} doesn't have task with {taskId} id.");
@@ -147,5 +148,17 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
     public async Task<Entities.Task> GetTaskForUser(string userEmail, int taskId)
     {
         return await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+    }
+
+    public async Task<IEnumerable<Entities.Task>> GetTasksForUser(string userEmail, QueryParameters parameters)
+    {
+        var user = await userRepository.GetUserAsync(userEmail);
+        if (user is null)
+        {
+            throw new NotFoundException(nameof(User.Entities.User), userEmail);
+        }
+        IEnumerable<Entities.Task> tasks = await taskRepository.GetAllMatchingTaskForUser(user, parameters);
+
+        return tasks;
     }
 }
