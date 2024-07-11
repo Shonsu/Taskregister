@@ -19,9 +19,10 @@ builder.Services.AddDbContext<TaskRegisterDbContext>(options => options.UseSqlSe
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ITaskService, TaskService>();
+
 var appliactionAssembly = typeof(Program).Assembly;
 builder.Services.AddValidatorsFromAssembly(appliactionAssembly).AddFluentValidationAutoValidation();
-//builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options=>options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));   
+//builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options=>options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
@@ -44,10 +45,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetService<TaskRegisterDbContext>();
+IEnumerable<string> pendingMigrations = dbContext.Database.GetPendingMigrations();
+if (pendingMigrations.Any())
+{
+    dbContext.Database.Migrate();
+}
+
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapFallbackToFile("/index.html");
+//app.MapFallbackToFile("/index.html");
 
 app.Run();

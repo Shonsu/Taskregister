@@ -1,5 +1,4 @@
-﻿
-namespace Taskregister.Server.User.Entities;
+﻿namespace Taskregister.Server.User.Entities;
 
 public class User
 {

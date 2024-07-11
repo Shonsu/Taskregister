@@ -2,6 +2,6 @@
 
 namespace Taskregister.Server.Task.Controller.Dto;
 
-public record QueryParameters(Priority? priority, TaskType? taskType, DateOnly? from, DateOnly? to)
+public record QueryParameters(Priority? priority, TaskType? taskType, DateTime? from, DateTime? to)
 {
 }

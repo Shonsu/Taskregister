@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Taskregister.Server.Persistance;
 
@@ -11,9 +12,11 @@ using Taskregister.Server.Persistance;
 namespace Taskregister.Server.Migrations
 {
     [DbContext(typeof(TaskRegisterDbContext))]
-    partial class TaskRegisterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240628172032_AddTaskHisotry")]
+    partial class AddTaskHisotry
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,7 +68,7 @@ namespace Taskregister.Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Tasks", (string)null);
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("Taskregister.Server.User.Entities.User", b =>
@@ -82,7 +85,7 @@ namespace Taskregister.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Taskregister.Server.Task.Entities.Task", b =>

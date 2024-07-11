@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Taskregister.Server.Task.Services.Dto;
-using Taskregister.Server.Task.Services;
 using Taskregister.Server.Task.Controller.Dto;
 using Taskregister.Server.Task.Contstants;
+using Taskregister.Server.Task.Services;
+using Taskregister.Server.Task.Services.Dto;
 
 namespace Taskregister.Server.Task.Controller;
 
@@ -10,7 +10,6 @@ namespace Taskregister.Server.Task.Controller;
 [Route("api/")]
 public class TaskController(ITaskService taskService) : ControllerBase
 {
-
     [HttpGet("{userEmail}/[controller]")]
     public async Task<ActionResult<IEnumerable<Entities.Task>>> GetAllTasks([FromRoute] string userEmail, [FromQuery] QueryParameters query)
     {
@@ -27,7 +26,7 @@ public class TaskController(ITaskService taskService) : ControllerBase
     }
 
     [HttpPost("{userEmail}/[controller]")]
-    public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto createTaskDto, [FromRoute] string userEmail)
+    public async Task<ActionResult<int>> CreateTask([FromBody] CreateTaskDto createTaskDto, [FromRoute] string userEmail)
     {
         int taskId = await taskService.CreateTaskAsync(createTaskDto, userEmail);
         return Ok(taskId);
@@ -60,5 +59,4 @@ public class TaskController(ITaskService taskService) : ControllerBase
         int id = await taskService.ChangeTaskState(userEmail, taskId, newState);
         return Ok(id);
     }
-
 }
