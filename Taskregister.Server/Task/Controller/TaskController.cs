@@ -8,14 +8,18 @@ namespace Taskregister.Server.Task.Controller;
 
 [ApiController]
 [Route("api/")]
-public class TaskController(ITaskService taskService) : ControllerBase
+public class TaskController(ILogger<TaskController> logger,ITaskService taskService) : ControllerBase
 {
     [HttpGet("{userEmail}/[controller]")]
     public async Task<ActionResult<IEnumerable<Entities.Task>>> GetAllTasks([FromRoute] string userEmail, [FromQuery] QueryParameters query)
     {
-        var tasks = await taskService.GetTasksForUser(userEmail, query);
-
-        return Ok(tasks);
+        var result = await taskService.GetTasksForUser(userEmail, query);
+        if(result.IsFailure)
+        {
+            logger.LogInformation($"result.IsFailure: {result.IsFailure}");
+            return NotFound(result.Error);
+        }
+        return Ok(result.Value);
     }
 
     [HttpGet("{userEmail}/[controller]/{taskId}")]
