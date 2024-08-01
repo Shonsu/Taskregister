@@ -20,8 +20,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 
-var appliactionAssembly = typeof(Program).Assembly;
-builder.Services.AddValidatorsFromAssembly(appliactionAssembly).AddFluentValidationAutoValidation();
+var applicationAssembly = typeof(Program).Assembly;
+builder.Services.AddValidatorsFromAssembly(applicationAssembly).AddFluentValidationAutoValidation();
 //builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options=>options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddCors(options =>
 {

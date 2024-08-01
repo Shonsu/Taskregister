@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using Newtonsoft.Json.Linq;
 
 namespace Taskregister.Server.Task.Controller.Dto;
 
@@ -11,7 +10,8 @@ public class ExtendByValidator : AbstractValidator<ExtendBy>
     {
         RuleFor(e => e.days)
             .Must(value => allowedExtendNumbers.Contains(value))
-            .When(e => e is not null);
+            .When(e => e is not null)
+            .WithMessage(e => string.Format("{0} must be digit one of {1}", nameof(e.days), string.Join(", ", allowedExtendNumbers)));
 
         When(e => allowedExtendNumbers.Contains(e.days), () => RuleFor(e => e.extendByDayRationale).NotNull().NotEmpty());
     }

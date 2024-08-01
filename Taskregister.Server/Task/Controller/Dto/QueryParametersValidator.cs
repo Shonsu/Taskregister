@@ -1,12 +1,13 @@
 ﻿using FluentValidation;
-using Taskregister.Server.Task.Controller.Dto;
 
-namespace Taskregister.Server.Properties
+namespace Taskregister.Server.Task.Controller.Dto
 {
     public class QueryParametersValidator : AbstractValidator<QueryParameters>
     {
         public QueryParametersValidator()
         {
+            // TODO check priority types,
+            // TODO dateFrom should be before dateTo
         }
     }
 }

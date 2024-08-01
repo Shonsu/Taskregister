@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Taskregister.Server.Shared;
 using Taskregister.Server.Task.Controller.Dto;
 using Taskregister.Server.Task.Contstants;
 using Taskregister.Server.Task.Services;
@@ -8,32 +9,39 @@ namespace Taskregister.Server.Task.Controller;
 
 [ApiController]
 [Route("api/")]
-public class TaskController(ILogger<TaskController> logger,ITaskService taskService) : ControllerBase
+public class TaskController(ILogger<TaskController> logger, ITaskService taskService) : ControllerBase
 {
     [HttpGet("{userEmail}/[controller]")]
     public async Task<ActionResult<IEnumerable<Entities.Task>>> GetAllTasks([FromRoute] string userEmail, [FromQuery] QueryParameters query)
     {
         var result = await taskService.GetTasksForUser(userEmail, query);
-        if(result.IsFailure)
-        {
-            logger.LogInformation($"result.IsFailure: {result.IsFailure}");
-            return NotFound(result.Error);
-        }
-        return Ok(result.Value);
+        return result.Match(onSuccess: Ok, onFailure: NotFound);
+
+        //return result.Match<IEnumerable<Entities.Task>>(onSuccess: result => Ok(result),
+        // onFailure: error => NotFound(error));
+
+        //if (result.IsFailure)
+        //{
+        //    return NotFound(result.Error);
+        //}
+        //return Ok(result.Value);
     }
 
     [HttpGet("{userEmail}/[controller]/{taskId}")]
     public async Task<ActionResult<Entities.Task>> GetTaskForUser([FromRoute] string userEmail, [FromRoute] int taskId)
     {
-        Entities.Task task = await taskService.GetTaskForUser(userEmail, taskId);
-        return Ok(task);
+        var result = await taskService.GetTaskForUser(userEmail, taskId);
+        return Ok(result.Value);
     }
 
     [HttpPost("{userEmail}/[controller]")]
     public async Task<ActionResult<int>> CreateTask([FromBody] CreateTaskDto createTaskDto, [FromRoute] string userEmail)
     {
-        int taskId = await taskService.CreateTaskAsync(createTaskDto, userEmail);
-        return Ok(taskId);
+        var result = await taskService.CreateTaskAsync(createTaskDto, userEmail);
+        return result.Match<int>(onSuccess: result => CreatedAtAction(nameof(GetTaskForUser), new { userEmail = userEmail, taskId = result }, null),
+         onFailure: error => NotFound(error));
+
+        // return Ok(taskId);
     }
 
     [HttpPut("{userEmail}/[controller]/{taskId}")]
