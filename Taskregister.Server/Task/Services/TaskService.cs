@@ -2,6 +2,7 @@
 using Taskregister.Server.Shared;
 using Taskregister.Server.Task.Controller.Dto;
 using Taskregister.Server.Task.Contstants;
+using Taskregister.Server.Task.Errors;
 using Taskregister.Server.Task.Repository;
 using Taskregister.Server.Task.Services.Dto;
 using Taskregister.Server.User.Errors;
@@ -14,9 +15,9 @@ public interface ITaskService
     Task<Result<Entities.Task>> GetTaskForUser(string userEmail, int taskId);
     Task<Result<IEnumerable<Task.Entities.Task>>> GetTasksForUser(string userEmail, QueryParameters parameters);
     Task<Result<int>> CreateTaskAsync(CreateTaskDto createTaskDto, string userEmail);
-    System.Threading.Tasks.Task UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId);
-    Task<int> ChangeTaskState(string userEmail, int taskId, State state);
-    Task<int> ExtendEndDate(string userEmail, int taskId, ExtendBy days);
+    System.Threading.Tasks.Task<Result<object>> UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId);
+    Task<Result<int>> ChangeTaskState(string userEmail, int taskId, State state);
+    Task<Result<int>> ExtendEndDate(string userEmail, int taskId, ExtendBy days);
     System.Threading.Tasks.Task DeleteTaskAsync(string userEmail, int taskId);
 }
 
@@ -70,13 +71,15 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
 
     }
 
-    public async System.Threading.Tasks.Task UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId)
+    public async System.Threading.Tasks.Task<Result<object>> UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId)
     {
         Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
 
         if (task!.State == State.COMPLETED)
         {
-            throw new NotSupportedException($"Can't update completed task with {taskId} id.");
+            return Result<object>.Failure(TaskErrors.CantModifyCompleted(task.Id));
+
+            //throw new NotSupportedException($"Can't update completed task with {taskId} id.");
         }
 
         if (task.Type != updateTaskDto.Type)
@@ -87,9 +90,10 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
         task.Priority = updateTaskDto.Priority;
         task.Description = updateTaskDto.Description;
         await taskRepository.SaveChangesAsync();
+        return null;
     }
 
-    public async Task<int> ChangeTaskState(string userEmail, int taskId, State state)
+    public async Task<Result<int>> ChangeTaskState(string userEmail, int taskId, State state)
     {
         Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
 
@@ -111,23 +115,25 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
         }
         else
         {
+            return Result<int>.Failure(TaskErrors.CantChangeState(taskId, task.State, (State)newState));
             throw new NotSupportedException($"Unable to change state of task with {taskId} id with status: {task.State} to {state}.");
         }
         await taskRepository.SaveChangesAsync();
-        return task.Id;
+        return Result<int>.Success(task.Id);
     }
-    public async Task<int> ExtendEndDate(string userEmail, int taskId, ExtendBy days)
+    public async Task<Result<int>> ExtendEndDate(string userEmail, int taskId, ExtendBy days)
     {
         Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
         if (task!.State == State.COMPLETED)
         {
+            return Result<int>.Failure(TaskErrors.CantModifyCompleted(task.Id));
             throw new NotSupportedException($"Can't modify completed task with {taskId} id.");
         }
         task!.EndDate = task!.EndDate.AddDays(days.days);
         task.ChangeEndDateRationale = days.extendByDayRationale;
         task.History.Add($"Extend by {days.days} until {task!.EndDate} - {task.ChangeEndDateRationale}");
         await taskRepository.SaveChangesAsync();
-        return task.Id;
+        return Result<int>.Success(task.Id);
     }
 
     public async System.Threading.Tasks.Task DeleteTaskAsync(string userEmail, int taskId)
