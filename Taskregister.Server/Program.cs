@@ -22,6 +22,8 @@ builder.Services.AddScoped<ITaskService, TaskService>();
 
 var applicationAssembly = typeof(Program).Assembly;
 builder.Services.AddValidatorsFromAssembly(applicationAssembly).AddFluentValidationAutoValidation();
+// TODO change to without aspnetcore validator
+// builder.Services.AddValidatorsFromAssembly(applicationAssembly)
 //builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options=>options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddCors(options =>
 {

@@ -18,7 +18,7 @@ public interface ITaskService
     System.Threading.Tasks.Task<Result<object>> UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId);
     Task<Result<int>> ChangeTaskState(string userEmail, int taskId, State state);
     Task<Result<int>> ExtendEndDate(string userEmail, int taskId, ExtendBy days);
-    System.Threading.Tasks.Task DeleteTaskAsync(string userEmail, int taskId);
+    System.Threading.Tasks.Task<Result<object>> DeleteTaskAsync(string userEmail, int taskId);
 }
 
 public class TaskService(IUserRepository userRepository, ITaskRepository taskRepository) : ITaskService
@@ -60,7 +60,7 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
             Priority = createTaskDto.Priority,
             CreateAt = createAt,
             EndDate = endDate,
-            State = State.NEW,
+            State = State.New,
             DateState = DateTime.Now,
             Description = createTaskDto.Description
         };
@@ -75,7 +75,7 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
     {
         Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
 
-        if (task!.State == State.COMPLETED)
+        if (task!.State == State.Completed)
         {
             return Result<object>.Failure(TaskErrors.CantModifyCompleted(task.Id));
 
@@ -99,8 +99,8 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
 
         State? newState = task.State switch
         {
-            State.NEW or State.RESUMED => state == State.COMPLETED ? State.COMPLETED : null,
-            State.COMPLETED => state == State.RESUMED ? State.RESUMED : null,
+            State.New or State.Resumed => state == State.Completed ? State.Completed : null,
+            State.Completed => state == State.Resumed ? State.Resumed : null,
             _ => null
         };
 
@@ -108,14 +108,14 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
         {
             task.State = (State)newState;
             task.DateState = DateTime.Now;
-            if (newState == State.RESUMED)
+            if (newState == State.Resumed)
             {
                 task.EndDate = CalculateEndDate(task.Type, DateTime.Now);
             }
         }
         else
         {
-            return Result<int>.Failure(TaskErrors.CantChangeState(taskId, task.State, (State)newState));
+            return Result<int>.Failure(TaskErrors.CantChangeState(taskId, task.State, (State)state));
             throw new NotSupportedException($"Unable to change state of task with {taskId} id with status: {task.State} to {state}.");
         }
         await taskRepository.SaveChangesAsync();
@@ -124,7 +124,7 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
     public async Task<Result<int>> ExtendEndDate(string userEmail, int taskId, ExtendBy days)
     {
         Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
-        if (task!.State == State.COMPLETED)
+        if (task!.State == State.Completed)
         {
             return Result<int>.Failure(TaskErrors.CantModifyCompleted(task.Id));
             throw new NotSupportedException($"Can't modify completed task with {taskId} id.");
@@ -136,26 +136,30 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
         return Result<int>.Success(task.Id);
     }
 
-    public async System.Threading.Tasks.Task DeleteTaskAsync(string userEmail, int taskId)
+    public async System.Threading.Tasks.Task<Result<object>> DeleteTaskAsync(string userEmail, int taskId)
     {
         Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
 
-        if (task!.State is not State.COMPLETED)
+        if (task!.State is not State.Completed)
         {
             await taskRepository.Delete(task);
         }
         else
         {
-            throw new NotSupportedException($"Unable to delete task {taskId} id with status: {task.State}.");
+            return Result<object>.Failure(TaskErrors.CantDeleteCompleted(task.Id));
+            // throw new NotSupportedException($"Unable to delete task {taskId} id with status: {task.State}.");
         }
+
+        return null;
     }
+    
     private static DateTime CalculateEndDate(TaskType type, DateTime createAt)
     {
         return type switch
         {
-            TaskType.TYPE_1 => createAt.AddDays((double)TaskType.TYPE_1),
-            TaskType.TYPE_2 => createAt.AddDays((double)TaskType.TYPE_2),
-            TaskType.TYPE_3 => createAt.AddDays((double)TaskType.TYPE_3),
+            TaskType.Type1 => createAt.AddDays((double)TaskType.Type1),
+            TaskType.Type2 => createAt.AddDays((double)TaskType.Type2),
+            TaskType.Type3 => createAt.AddDays((double)TaskType.Type3),
             _ => throw new ArgumentOutOfRangeException(nameof(type), $"Not expected task type value: {type}"),
         };
     }

@@ -2,7 +2,7 @@
 
 public enum State
 {
-    NEW,
-    COMPLETED,
-    RESUMED
+    New,
+    Completed,
+    Resumed
 }

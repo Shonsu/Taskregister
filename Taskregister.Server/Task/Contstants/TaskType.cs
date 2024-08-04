@@ -2,7 +2,7 @@
 
 public enum TaskType
 {
-    TYPE_1 = 30,
-    TYPE_2 = 7,
-    TYPE_3 = 14
+    Type1 = 30,
+    Type2 = 7,
+    Type3 = 14
 }

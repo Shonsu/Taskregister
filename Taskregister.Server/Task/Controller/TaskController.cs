@@ -43,7 +43,7 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
         return result.Match<int>(
             onSuccess: r =>
                 CreatedAtAction(nameof(GetTaskForUser), new { userEmail = userEmail, taskId = result }, r),
-            onFailure: error => NotFound(error));
+            onFailure: error => BadRequest(error));
 
         // return Ok(taskId);
     }
@@ -52,15 +52,17 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
     public async Task<IActionResult> UpdateTask([FromBody] UpdateTaskDto updateTaskDto, [FromRoute] string userEmail,
         [FromRoute] int taskId)
     {
-        await taskService.UpdateTaskAsync(updateTaskDto, userEmail, taskId);
+        var result = await taskService.UpdateTaskAsync(updateTaskDto, userEmail, taskId);
+        result.Match(onSuccess: Ok, onFailure: BadRequest);
         return NoContent();
     }
 
     [HttpDelete("{userEmail}/[controller]/{taskId}")]
     public async Task<IActionResult> DeleteTask([FromRoute] string userEmail, [FromRoute] int taskId)
     {
-        await taskService.DeleteTaskAsync(userEmail, taskId);
-        return NoContent();
+        var result = await taskService.DeleteTaskAsync(userEmail, taskId);
+        return result.Match(onSuccess: Ok, onFailure: error => BadRequest(error));
+        // return NoContent();
     }
 
     [HttpPatch("{userEmail}/[controller]/{taskId}/endDate")]
@@ -69,7 +71,7 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
     {
         var result = await taskService.ExtendEndDate(userEmail, taskId, days);
         //return Ok(id);
-        return result.Match(onSuccess: r=> Ok(r), onFailure: error => BadRequest(error));
+        return result.Match(onSuccess: r => Ok(r), onFailure: error => BadRequest(error));
     }
 
     [HttpPatch("{userEmail}/[controller]/{taskId}/taskState")]
