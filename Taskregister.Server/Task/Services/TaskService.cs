@@ -25,8 +25,9 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
 {
     public async Task<Result<Entities.Task>> GetTaskForUser(string userEmail, int taskId)
     {
-        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
-        return Result<Task.Entities.Task>.Success(task);
+        var taskQueryResult = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        //taskQueryResult.Match(onSuccess:t=> Res)
+        return taskQueryResult;
     }
 
     public async Task<Result<IEnumerable<Task.Entities.Task>>> GetTasksForUser(string userEmail, QueryParameters parameters)
@@ -73,7 +74,13 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
 
     public async System.Threading.Tasks.Task<Result<object>> UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId)
     {
-        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        
+        var taskQueryResult = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        if (!taskQueryResult.IsSuccess)
+        {
+            return Result<object>.Failure(taskQueryResult.Error);
+        }
+        var task = taskQueryResult.Value;
 
         if (task!.State == State.Completed)
         {
@@ -95,7 +102,13 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
 
     public async Task<Result<int>> ChangeTaskState(string userEmail, int taskId, State state)
     {
-        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        // Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        var taskQueryResult = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        if (!taskQueryResult.IsSuccess)
+        {
+            return Result<int>.Failure(taskQueryResult.Error);
+        }
+        var task = taskQueryResult.Value;
 
         State? newState = task.State switch
         {
@@ -123,7 +136,14 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
     }
     public async Task<Result<int>> ExtendEndDate(string userEmail, int taskId, ExtendBy days)
     {
-        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        // Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        var taskQueryResult = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        if (!taskQueryResult.IsSuccess)
+        {
+            return Result<int>.Failure(taskQueryResult.Error);
+        }
+        var task = taskQueryResult.Value;
+
         if (task!.State == State.Completed)
         {
             return Result<int>.Failure(TaskErrors.CantModifyCompleted(task.Id));
@@ -138,7 +158,13 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
 
     public async System.Threading.Tasks.Task<Result<object>> DeleteTaskAsync(string userEmail, int taskId)
     {
-        Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        // Entities.Task task = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        var taskQueryResult = await GetTaskByUserEmailAndTaskId(userEmail, taskId);
+        if (!taskQueryResult.IsSuccess)
+        {
+            return Result<object>.Failure(taskQueryResult.Error);
+        }
+        var task = taskQueryResult.Value;
 
         if (task!.State is not State.Completed)
         {
@@ -164,18 +190,20 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
         };
     }
 
-    private async Task<Entities.Task> GetTaskByUserEmailAndTaskId(string userEmail, int taskId)
+    private async Task<Result<Entities.Task>> GetTaskByUserEmailAndTaskId(string userEmail, int taskId)
     {
         var user = await userRepository.GetUserAsync(userEmail);
         if (user is null)
         {
+            return Result<Entities.Task>.Failure(UserErrors.NotFoundByEmail(userEmail));
             throw new NotFoundException(nameof(User.Entities.User), userEmail);
         }
         var task = await taskRepository.GetTaskByUserIdAndTaskIdAsync(user.Id, taskId);
         if (task is null)
         {
-            throw new NotSupportedException($"User with {userEmail} doesn't have task with {taskId} id.");
+            //throw new NotSupportedException($"User with {userEmail} doesn't have task with {taskId} id.");
+            return Result<Entities.Task>.Failure(TaskErrors.NotFoundTaskIdForUserId(user.Id, taskId));
         }
-        return task;
+        return Result<Entities.Task>.Success(task);
     }
 }

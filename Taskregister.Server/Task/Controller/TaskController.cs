@@ -32,7 +32,9 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
     public async Task<ActionResult<Entities.Task>> GetTaskForUser([FromRoute] string userEmail, [FromRoute] int taskId)
     {
         var result = await taskService.GetTaskForUser(userEmail, taskId);
-        return Ok(result.Value);
+        
+        // return Ok(result.Value);
+        return result.Match(onSuccess: Ok, onFailure: BadRequest);
     }
 
     [HttpPost("{userEmail}/[controller]")]
@@ -53,8 +55,8 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
         [FromRoute] int taskId)
     {
         var result = await taskService.UpdateTaskAsync(updateTaskDto, userEmail, taskId);
-        result.Match(onSuccess: Ok, onFailure: BadRequest);
-        return NoContent();
+        return result.Match(onSuccess: Ok, onFailure: BadRequest);
+        //return NoContent();
     }
 
     [HttpDelete("{userEmail}/[controller]/{taskId}")]
