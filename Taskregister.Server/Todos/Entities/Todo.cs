@@ -1,8 +1,8 @@
-﻿using Taskregister.Server.Task.Contstants;
+﻿using Taskregister.Server.Todos.Contstants;
 
-namespace Taskregister.Server.Task.Entities;
+namespace Taskregister.Server.Todos.Entities;
 
-public class Task
+public class Todo
 {
     public int Id { get; set; }
     public TaskType Type { get; set; }

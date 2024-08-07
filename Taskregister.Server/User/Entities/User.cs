@@ -1,8 +1,10 @@
-﻿namespace Taskregister.Server.User.Entities;
+﻿using Taskregister.Server.Todos.Entities;
+
+namespace Taskregister.Server.User.Entities;
 
 public class User
 {
     public int Id { get; set; }
     public string Email { get; set; } = default!;
-    public List<Task.Entities.Task> Tasks { get; set; } = [];
+    public List<Todo> Tasks { get; set; } = [];
 }

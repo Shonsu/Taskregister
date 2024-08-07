@@ -12,9 +12,9 @@ public class Result<T>
         {
             throw new ArgumentException("Invalid error", nameof(error));
         }
-        this.IsSuccess = isSuccess;
-        this._value = value;
-        this.Error = error;
+        IsSuccess = isSuccess;
+        _value = value;
+        Error = error;
     }
 
     public T Value

@@ -1,21 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Taskregister.Server.Shared;
-using Taskregister.Server.Task.Controller.Dto;
-using Taskregister.Server.Task.Contstants;
-using Taskregister.Server.Task.Services;
-using Taskregister.Server.Task.Services.Dto;
+using Taskregister.Server.Todos.Controller.Dto;
+using Taskregister.Server.Todos.Contstants;
+using Taskregister.Server.Todos.Entities;
+using Taskregister.Server.Todos.Services;
+using Taskregister.Server.Todos.Services.Dto;
 
-namespace Taskregister.Server.Task.Controller;
+namespace Taskregister.Server.Todos.Controller;
 
 [ApiController]
 [Route("api/")]
-public class TaskController(ILogger<TaskController> logger, ITaskService taskService) : ControllerBase
+public class TodosController(ILogger<TodosController> logger, ITodosService todosService) : ControllerBase
 {
     [HttpGet("{userEmail}/[controller]")]
-    public async Task<ActionResult<IReadOnlyList<Entities.Task>>> GetAllTasks([FromRoute] string userEmail,
+    public async Task<ActionResult<IReadOnlyList<Todo>>> GetAllTasks([FromRoute] string userEmail,
         [FromQuery] QueryParameters query)
     {
-        var result = await taskService.GetTasksForUser(userEmail, query);
+        var result = await todosService.GetTodosForUser(userEmail, query);
         return result.Match(onSuccess: Ok, onFailure: NotFound);
 
         //return result.Match<IEnumerable<Entities.Task>>(onSuccess: result => Ok(result),
@@ -29,32 +30,32 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
     }
 
     [HttpGet("{userEmail}/[controller]/{taskId}")]
-    public async Task<ActionResult<Entities.Task>> GetTaskForUser([FromRoute] string userEmail, [FromRoute] int taskId)
+    public async Task<ActionResult<Todo>> GetTaskForUser([FromRoute] string userEmail, [FromRoute] int taskId)
     {
-        var result = await taskService.GetTaskForUser(userEmail, taskId);
+        var result = await todosService.GetTodoForUser(userEmail, taskId);
         
         // return Ok(result.Value);
         return result.Match(onSuccess: Ok, onFailure: BadRequest);
     }
 
     [HttpPost("{userEmail}/[controller]")]
-    public async Task<ActionResult<int>> CreateTask([FromBody] CreateTaskDto createTaskDto,
+    public async Task<ActionResult<int>> CreateTask([FromBody] CreateTodoDto createTodoDto,
         [FromRoute] string userEmail)
     {
-        var result = await taskService.CreateTaskAsync(createTaskDto, userEmail);
-        return result.Match<int>(
+        var result = await todosService.CreateTodoAsync(createTodoDto, userEmail);
+        return result.Match(
             onSuccess: r =>
-                CreatedAtAction(nameof(GetTaskForUser), new { userEmail = userEmail, taskId = result }, r),
+                CreatedAtAction(nameof(GetTaskForUser), new { userEmail, taskId = r }, null),
             onFailure: error => BadRequest(error));
 
         // return Ok(taskId);
     }
 
     [HttpPut("{userEmail}/[controller]/{taskId}")]
-    public async Task<IActionResult> UpdateTask([FromBody] UpdateTaskDto updateTaskDto, [FromRoute] string userEmail,
+    public async Task<IActionResult> UpdateTask([FromBody] UpdateTodoDto updateTodoDto, [FromRoute] string userEmail,
         [FromRoute] int taskId)
     {
-        var result = await taskService.UpdateTaskAsync(updateTaskDto, userEmail, taskId);
+        var result = await todosService.UpdateTodoAsync(updateTodoDto, userEmail, taskId);
         return result.Match(onSuccess: Ok, onFailure: BadRequest);
         //return NoContent();
     }
@@ -62,7 +63,7 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
     [HttpDelete("{userEmail}/[controller]/{taskId}")]
     public async Task<IActionResult> DeleteTask([FromRoute] string userEmail, [FromRoute] int taskId)
     {
-        var result = await taskService.DeleteTaskAsync(userEmail, taskId);
+        var result = await todosService.DeleteTodoAsync(userEmail, taskId);
         return result.Match(onSuccess: Ok, onFailure: error => BadRequest(error));
         // return NoContent();
     }
@@ -71,7 +72,7 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
     public async Task<IActionResult> ExtendEndDate([FromRoute] string userEmail, [FromRoute] int taskId,
         [FromBody] ExtendBy days)
     {
-        var result = await taskService.ExtendEndDate(userEmail, taskId, days);
+        var result = await todosService.ExtendTodoEndDate(userEmail, taskId, days);
         //return Ok(id);
         return result.Match(onSuccess: r => Ok(r), onFailure: error => BadRequest(error));
     }
@@ -80,10 +81,10 @@ public class TaskController(ILogger<TaskController> logger, ITaskService taskSer
     public async Task<IActionResult> ChangeTaskState([FromRoute] string userEmail, [FromRoute] int taskId,
         [FromQuery] State newState)
     {
-        var result = await taskService.ChangeTaskState(userEmail, taskId, newState);
+        var result = await todosService.ChangeTodoState(userEmail, taskId, newState);
         return result.Match(
             onSuccess: r =>
-                CreatedAtAction(nameof(GetTaskForUser), new { userEmail = userEmail, taskId = taskId }, r),
+                CreatedAtAction(nameof(GetTaskForUser), new { userEmail, taskId }, r),
             onFailure: error => BadRequest(error));
     }
 }

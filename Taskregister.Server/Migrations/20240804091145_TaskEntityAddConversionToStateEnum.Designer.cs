@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Taskregister.Server.Persistance;
+using Taskregister.Server.Persistence;
 
 #nullable disable
 
 namespace Taskregister.Server.Migrations
 {
-    [DbContext(typeof(TaskRegisterDbContext))]
+    [DbContext(typeof(TodosRegisterDbContext))]
     [Migration("20240804091145_TaskEntityAddConversionToStateEnum")]
     partial class TaskEntityAddConversionToStateEnum
     {
@@ -25,7 +25,7 @@ namespace Taskregister.Server.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Taskregister.Server.Task.Entities.Task", b =>
+            modelBuilder.Entity("Taskregister.Server.Todos.Entities.Task", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -89,7 +89,7 @@ namespace Taskregister.Server.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Taskregister.Server.Task.Entities.Task", b =>
+            modelBuilder.Entity("Taskregister.Server.Todos.Entities.Task", b =>
                 {
                     b.HasOne("Taskregister.Server.User.Entities.User", null)
                         .WithMany("Tasks")

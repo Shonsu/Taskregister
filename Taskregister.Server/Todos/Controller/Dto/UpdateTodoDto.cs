@@ -1,8 +1,8 @@
-﻿using Taskregister.Server.Task.Contstants;
+﻿using Taskregister.Server.Todos.Contstants;
 
-namespace Taskregister.Server.Task.Controller.Dto
+namespace Taskregister.Server.Todos.Controller.Dto
 {
-    public class UpdateTaskDto
+    public class UpdateTodoDto
     {
         public TaskType Type { get; set; }
         public Priority Priority { get; set; }

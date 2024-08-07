@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Taskregister.Server.Task.Contstants;
+using Taskregister.Server.Todos.Contstants;
 
-namespace Taskregister.Server.Task.Services.Dto;
+namespace Taskregister.Server.Todos.Services.Dto;
 
-public class CreateTaskDto
+public class CreateTodoDto
 {
     [JsonRequired]
     public TaskType Type { get; set; }

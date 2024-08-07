@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Taskregister.Server.Persistance;
+using Taskregister.Server.Persistence;
 
 namespace Taskregister.Server.User.Repository;
 
@@ -9,10 +9,10 @@ public interface IUserRepository
     Task<IEnumerable<Entities.User>> GetAllUsersAsync();
     Task<Entities.User?> GetUserAsync(string email);
     Task<int> GetUserIdByEmailAsync(string userEmail);
-    System.Threading.Tasks.Task SaveChangesAsync();
+    Task SaveChangesAsync();
 }
 
-public class UserRepository(TaskRegisterDbContext dbContext) : IUserRepository
+public class UserRepository(TodosRegisterDbContext dbContext) : IUserRepository
 {
     public async Task<int> CreateUserAsync(Entities.User user)
     {
@@ -35,6 +35,6 @@ public class UserRepository(TaskRegisterDbContext dbContext) : IUserRepository
         return await dbContext.Users.Where(u=>u.Email.Equals(userEmail)).Select(u=>u.Id).SingleOrDefaultAsync();
     }
 
-    public async System.Threading.Tasks.Task SaveChangesAsync()=>await dbContext.SaveChangesAsync();
+    public async Task SaveChangesAsync()=>await dbContext.SaveChangesAsync();
 
 }

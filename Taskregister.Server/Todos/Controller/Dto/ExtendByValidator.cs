@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Taskregister.Server.Task.Controller.Dto;
+namespace Taskregister.Server.Todos.Controller.Dto;
 
 public class ExtendByValidator : AbstractValidator<ExtendBy>
 {

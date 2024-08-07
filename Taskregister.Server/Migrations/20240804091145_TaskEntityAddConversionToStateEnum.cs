@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Taskregister.Server.Task.Contstants;
+using Taskregister.Server.Todos.Contstants;
 
 #nullable disable
 
@@ -20,10 +20,10 @@ namespace Taskregister.Server.Migrations
                 oldClrType: typeof(int),
                 oldType: "int");
             
-            migrationBuilder.Sql($"UPDATE Tasks SET State = '{Task.Contstants.State.New.ToString()}' WHERE State = '0'");
-            migrationBuilder.Sql($"UPDATE Tasks SET State = '{Task.Contstants.State.Completed.ToString()}' WHERE State = '1'");
-            migrationBuilder.Sql($"UPDATE Tasks SET State = '{Task.Contstants.State.Resumed.ToString()}' WHERE State = '2'");
-            //Task.Contstants.State.New.ToString()
+            migrationBuilder.Sql($"UPDATE Tasks SET State = '{Todos.Contstants.State.New.ToString()}' WHERE State = '0'");
+            migrationBuilder.Sql($"UPDATE Tasks SET State = '{Todos.Contstants.State.Completed.ToString()}' WHERE State = '1'");
+            migrationBuilder.Sql($"UPDATE Tasks SET State = '{Todos.Contstants.State.Resumed.ToString()}' WHERE State = '2'");
+            //Todos.Contstants.State.New.ToString()
         }
 
         /// <inheritdoc />
@@ -37,9 +37,9 @@ namespace Taskregister.Server.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)");
             
-            migrationBuilder.Sql($"UPDATE Tasks SET  State = '0' WHERE State = '{Task.Contstants.State.New.ToString()}'");
-            migrationBuilder.Sql($"UPDATE Tasks SET  State = '1' WHERE State = '{Task.Contstants.State.Completed.ToString()}'");
-            migrationBuilder.Sql($"UPDATE Tasks SET  State = '2' WHERE State = '{Task.Contstants.State.Resumed.ToString()}'");
+            migrationBuilder.Sql($"UPDATE Tasks SET  State = '0' WHERE State = '{Todos.Contstants.State.New.ToString()}'");
+            migrationBuilder.Sql($"UPDATE Tasks SET  State = '1' WHERE State = '{Todos.Contstants.State.Completed.ToString()}'");
+            migrationBuilder.Sql($"UPDATE Tasks SET  State = '2' WHERE State = '{Todos.Contstants.State.Resumed.ToString()}'");
         }
     }
 }

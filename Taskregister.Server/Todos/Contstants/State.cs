@@ -1,4 +1,4 @@
-﻿namespace Taskregister.Server.Task.Contstants;
+﻿namespace Taskregister.Server.Todos.Contstants;
 
 public enum State
 {

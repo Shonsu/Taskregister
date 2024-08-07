@@ -1,22 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Taskregister.Server.Task.Contstants;
+using Taskregister.Server.Todos.Contstants;
+using Taskregister.Server.Todos.Entities;
 
-namespace Taskregister.Server.Persistance
+namespace Taskregister.Server.Persistence
 {
-    public class TaskRegisterDbContext(DbContextOptions<TaskRegisterDbContext> options) : DbContext(options)
+    public class TodosRegisterDbContext(DbContextOptions<TodosRegisterDbContext> options) : DbContext(options)
     {
         internal DbSet<User.Entities.User> Users { get; set; }
-        internal DbSet<Task.Entities.Task> Tasks { get; set; }
+        internal DbSet<Todo> Todos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Task.Entities.Task>()
+            modelBuilder.Entity<Todo>()
                 .Property(t => t.State).HasConversion(new EnumToStringConverter<State>());
+           // modelBuilder.Entity<Todo>().ToTable("Todos").HasKey(k => k.Id);
         }
 
-        // For all Enums in Entities
+        // For all Enums in Entities to be stored as strings
         // protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         // {
         //     base.ConfigureConventions(configurationBuilder);
