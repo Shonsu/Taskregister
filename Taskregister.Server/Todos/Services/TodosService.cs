@@ -64,7 +64,7 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
             Description = createTodoDto.Description
         };
 
-        user.Tasks.Add(todo);
+        user.Todos.Add(todo);
         await userRepository.SaveChangesAsync();
         return Result<int>.Success(todo.Id);
 

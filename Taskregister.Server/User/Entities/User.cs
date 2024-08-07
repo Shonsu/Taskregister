@@ -6,5 +6,5 @@ public class User
 {
     public int Id { get; set; }
     public string Email { get; set; } = default!;
-    public List<Todo> Tasks { get; set; } = [];
+    public List<Todo> Todos { get; set; } = [];
 }
