@@ -12,7 +12,7 @@ namespace Taskregister.Server.Task.Controller;
 public class TaskController(ILogger<TaskController> logger, ITaskService taskService) : ControllerBase
 {
     [HttpGet("{userEmail}/[controller]")]
-    public async Task<ActionResult<IEnumerable<Entities.Task>>> GetAllTasks([FromRoute] string userEmail,
+    public async Task<ActionResult<IReadOnlyList<Entities.Task>>> GetAllTasks([FromRoute] string userEmail,
         [FromQuery] QueryParameters query)
     {
         var result = await taskService.GetTasksForUser(userEmail, query);

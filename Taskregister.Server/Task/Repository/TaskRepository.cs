@@ -16,7 +16,7 @@ public interface ITaskRepository
 
     System.Threading.Tasks.Task Delete(Task.Entities.Task task);
 
-    Task<IEnumerable<Entities.Task>> GetAllMatchingTaskForUser(User.Entities.User user, QueryParameters parameters);
+    Task<IReadOnlyList<Entities.Task>> GetAllMatchingTaskForUser(User.Entities.User user, QueryParameters parameters);
 }
 
 public class TaskRepository(TaskRegisterDbContext dbContext, ILogger<TaskRepository> logger) : ITaskRepository
@@ -34,7 +34,7 @@ public class TaskRepository(TaskRegisterDbContext dbContext, ILogger<TaskReposit
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Entities.Task>> GetAllMatchingTaskForUser(User.Entities.User user, QueryParameters parameters)
+    public async Task<IReadOnlyList<Entities.Task>> GetAllMatchingTaskForUser(User.Entities.User user, QueryParameters parameters)
     {
         logger.LogInformation($"Parameters:  {parameters}");
         if (parameters.from != null)

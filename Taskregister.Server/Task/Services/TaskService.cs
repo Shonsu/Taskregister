@@ -13,7 +13,7 @@ namespace Taskregister.Server.Task.Services;
 public interface ITaskService
 {
     Task<Result<Entities.Task>> GetTaskForUser(string userEmail, int taskId);
-    Task<Result<IEnumerable<Task.Entities.Task>>> GetTasksForUser(string userEmail, QueryParameters parameters);
+    Task<Result<IReadOnlyList<Task.Entities.Task>>> GetTasksForUser(string userEmail, QueryParameters parameters);
     Task<Result<int>> CreateTaskAsync(CreateTaskDto createTaskDto, string userEmail);
     System.Threading.Tasks.Task<Result<object>> UpdateTaskAsync(UpdateTaskDto updateTaskDto, string userEmail, int taskId);
     Task<Result<int>> ChangeTaskState(string userEmail, int taskId, State state);
@@ -30,17 +30,17 @@ public class TaskService(IUserRepository userRepository, ITaskRepository taskRep
         return taskQueryResult;
     }
 
-    public async Task<Result<IEnumerable<Task.Entities.Task>>> GetTasksForUser(string userEmail, QueryParameters parameters)
+    public async Task<Result<IReadOnlyList<Task.Entities.Task>>> GetTasksForUser(string userEmail, QueryParameters parameters)
     {
         var user = await userRepository.GetUserAsync(userEmail);
         if (user is null)
         {
             //throw new NotFoundException(nameof(User.Entities.User), userEmail);
-            return Result<IEnumerable<Task.Entities.Task>>.Failure(UserErrors.NotFoundByEmail(userEmail));
+            return Result<IReadOnlyList<Task.Entities.Task>>.Failure(UserErrors.NotFoundByEmail(userEmail));
         }
-        IEnumerable<Entities.Task> tasks = await taskRepository.GetAllMatchingTaskForUser(user, parameters);
+        IReadOnlyList<Entities.Task> tasks = await taskRepository.GetAllMatchingTaskForUser(user, parameters);
 
-        return Result<IEnumerable<Task.Entities.Task>>.Success(tasks);
+        return Result<IReadOnlyList<Task.Entities.Task>>.Success(tasks);
     }
 
     public async Task<Result<int>> CreateTaskAsync(CreateTaskDto createTaskDto, string userEmail)
