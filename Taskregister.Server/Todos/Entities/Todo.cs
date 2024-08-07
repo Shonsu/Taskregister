@@ -1,4 +1,5 @@
-﻿using Taskregister.Server.Todos.Constants;
+﻿using Taskregister.Server.Tags.Entities;
+using Taskregister.Server.Todos.Constants;
 using Taskregister.Server.Todos.Contstants;
 
 namespace Taskregister.Server.Todos.Entities;
@@ -16,4 +17,5 @@ public class Todo
     public string? ChangeEndDateRationale { get; set; }
     public int UserId { get; set; }
     public List<string> History { get; set; } = [];
+    public List<Tag> Tags { get; set; }
 }
