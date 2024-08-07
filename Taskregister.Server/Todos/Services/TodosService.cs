@@ -1,11 +1,10 @@
-﻿using Taskregister.Server.Exceptions;
-using Taskregister.Server.Shared;
+﻿using Taskregister.Server.Shared;
+using Taskregister.Server.Todos.Constants;
 using Taskregister.Server.Todos.Controller.Dto;
 using Taskregister.Server.Todos.Contstants;
 using Taskregister.Server.Todos.Entities;
 using Taskregister.Server.Todos.Errors;
 using Taskregister.Server.Todos.Repository;
-using Taskregister.Server.Todos.Services.Dto;
 using Taskregister.Server.User.Errors;
 using Taskregister.Server.User.Repository;
 
@@ -170,13 +169,13 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
         return null;
     }
     
-    private static DateTime CalculateEndDate(TaskType type, DateTime createAt)
+    private static DateTime CalculateEndDate(TodoType type, DateTime createAt)
     {
         return type switch
         {
-            TaskType.Type1 => createAt.AddDays((double)TaskType.Type1),
-            TaskType.Type2 => createAt.AddDays((double)TaskType.Type2),
-            TaskType.Type3 => createAt.AddDays((double)TaskType.Type3),
+            TodoType.Type1 => createAt.AddDays((double)TodoType.Type1),
+            TodoType.Type2 => createAt.AddDays((double)TodoType.Type2),
+            TodoType.Type3 => createAt.AddDays((double)TodoType.Type3),
             _ => throw new ArgumentOutOfRangeException(nameof(type), $"Not expected task type value: {type}"),
         };
     }

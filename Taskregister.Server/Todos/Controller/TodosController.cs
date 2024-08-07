@@ -4,7 +4,6 @@ using Taskregister.Server.Todos.Controller.Dto;
 using Taskregister.Server.Todos.Contstants;
 using Taskregister.Server.Todos.Entities;
 using Taskregister.Server.Todos.Services;
-using Taskregister.Server.Todos.Services.Dto;
 
 namespace Taskregister.Server.Todos.Controller;
 

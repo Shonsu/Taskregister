@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Taskregister.Server.Todos.Contstants;
+using Taskregister.Server.Todos.Constants;
 
-namespace Taskregister.Server.Todos.Services.Dto;
+namespace Taskregister.Server.Todos.Controller.Dto;
 
 public class CreateTodoDto
 {
     [JsonRequired]
-    public TaskType Type { get; set; }
+    public TodoType Type { get; set; }
     [JsonRequired]
     public Priority Priority { get; set; }
     [MaxLength(200)]

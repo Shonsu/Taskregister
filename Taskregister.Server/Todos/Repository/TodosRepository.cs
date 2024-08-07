@@ -47,14 +47,14 @@ public class TodosRepository(TodosRegisterDbContext dbContext, ILogger<TodosRepo
             logger.LogInformation($"Local time -to- :{parameters.to!.Value.ToLocalTime()}");
         }
 
-        IQueryable<Todo> tasks = dbContext.Todos.Where(t => t.UserId == user.Id).AsQueryable();
+        IQueryable<Todo> todos = dbContext.Todos.Where(t => t.UserId == user.Id).AsQueryable();
 
-        tasks = tasks.Where(t => parameters.priority == null || t.Priority.Equals(parameters.priority));
-        tasks = tasks.Where(t => parameters.taskType == null || t.Type.Equals(parameters.taskType));
-        tasks = tasks.Where(t => parameters.from == null || t.EndDate >= parameters.from!.Value.ToLocalTime());
-        tasks = tasks.Where(t => parameters.to == null || t.EndDate <= parameters.to!.Value.ToLocalTime()); //.ToDateTime(new TimeOnly(0, 0)).AddDays(1)
+        todos = todos.Where(t => parameters.priority == null || t.Priority.Equals(parameters.priority));
+        todos = todos.Where(t => parameters.todoType == null || t.Type.Equals(parameters.todoType));
+        todos = todos.Where(t => parameters.from == null || t.EndDate >= parameters.from!.Value.ToLocalTime());
+        todos = todos.Where(t => parameters.to == null || t.EndDate <= parameters.to!.Value.ToLocalTime()); //.ToDateTime(new TimeOnly(0, 0)).AddDays(1)
 
-        return await tasks.ToListAsync();
+        return await todos.ToListAsync();
     }
 
     public async Task<Todo?> GetTodoByIdAsync(int taskId)
