@@ -55,8 +55,7 @@ public class TodosController(ILogger<TodosController> logger, ITodosService todo
         [FromRoute] int taskId)
     {
         var result = await todosService.UpdateTodoAsync(updateTodoDto, userEmail, taskId);
-        return result.Match(onSuccess: Ok, onFailure: BadRequest);
-        //return NoContent();
+        return result.Match(onSuccess: (r)=> Ok(r), onFailure: e=>BadRequest(e));
     }
 
     [HttpDelete("{userEmail}/[controller]/{taskId}")]

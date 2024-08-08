@@ -52,6 +52,7 @@ public class TagsService(ITagsRepository tagsRepository) : ITagsService
         {
             throw new  NotFoundException(nameof(Tag), tagId.ToString());
         }
+        tagExist.Name = tag.Name;
         await tagsRepository.UpdateAsync(tagExist);
         return tagExist.Id;
     }

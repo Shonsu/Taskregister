@@ -13,6 +13,7 @@ public interface ITagsRepository
     Task<IReadOnlyList<Tag>> GetAllAsync();
     Task<Tag?> GetByIdAsync(int id);
     Task<Tag?> GetByNameAsync(string value);
+    Task<IReadOnlyList<Tag>?> GetByIdListAsync(List<int> ids);
 }
 
 public class TagsRepository(TodosRegisterDbContext dbContext) : ITagsRepository
@@ -34,12 +35,13 @@ public class TagsRepository(TodosRegisterDbContext dbContext) : ITagsRepository
     public async Task<int> UpdateAsync(Tag tag)
     {
         // var tagToUpdate = await dbContext.Tags.FindAsync(tag.Id);
-        // if (tagToUpdate == null)
-        // {
-        //     throw new  NotFoundException(nameof(Tag), tag.Id.ToString());
-        // }
-        //
-        // dbContext.Entry(tagToUpdate).CurrentValues.SetValues(tag);
+        // // if (tagToUpdate == null)
+        // // {
+        // //     throw new  NotFoundException(nameof(Tag), tag.Id.ToString());
+        // // }
+        // //
+        // // dbContext.Entry(tagToUpdate).CurrentValues.SetValues(tag);
+        // tagToUpdate!.Name = tag.Name;
         dbContext.Tags.Update(tag);
         await dbContext.SaveChangesAsync();
         return tag.Id;
@@ -54,8 +56,14 @@ public class TagsRepository(TodosRegisterDbContext dbContext) : ITagsRepository
     {
         return await dbContext.Tags.FindAsync(id);
     }
+    
     public async Task<Tag?> GetByNameAsync(string value)
     {
         return await dbContext.Tags.SingleOrDefaultAsync(t=>t.Name.Equals(value));
+    }
+    
+    public async Task<IReadOnlyList<Tag>?> GetByIdListAsync(List<int> ids)
+    {
+        return await dbContext.Tags.Where(t => ids.Contains(t.Id)).ToListAsync();
     }
 }

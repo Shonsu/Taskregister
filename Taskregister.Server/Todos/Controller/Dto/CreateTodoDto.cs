@@ -12,5 +12,6 @@ public class CreateTodoDto
     public Priority Priority { get; set; }
     [MaxLength(200)]
     public string? Description { get; set; }
+    public List<int> TagIds { get; set; }
 }
 

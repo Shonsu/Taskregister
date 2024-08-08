@@ -1,4 +1,5 @@
 ﻿using Taskregister.Server.Shared;
+using Taskregister.Server.Tags.Repository;
 using Taskregister.Server.Todos.Constants;
 using Taskregister.Server.Todos.Controller.Dto;
 using Taskregister.Server.Todos.Contstants;
@@ -21,11 +22,14 @@ public interface ITodosService
     Task<Result<object>> DeleteTodoAsync(string userEmail, int todoId);
 }
 
-public class TodosService(IUserRepository userRepository, ITodosRepository todosRepository) : ITodosService
+public class TodosService(
+    IUserRepository userRepository,
+    ITodosRepository todosRepository,
+    ITagsRepository tagsRepository) : ITodosService
 {
     public async Task<Result<Todo>> GetTodoForUser(string userEmail, int todoId)
     {
-        var todoQueryResult = await GetTodoByUserEmailAndtodoId(userEmail, todoId);
+        var todoQueryResult = await GetTodoByUserEmailAndTodoId(userEmail, todoId);
         return todoQueryResult;
     }
 
@@ -36,6 +40,7 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
         {
             return Result<IReadOnlyList<Todo>>.Failure(UserErrors.NotFoundByEmail(userEmail));
         }
+
         IReadOnlyList<Todo> todos = await todosRepository.GetAllMatchingTodoForUser(user, parameters);
 
         return Result<IReadOnlyList<Todo>>.Success(todos);
@@ -51,6 +56,9 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
             return Result<int>.Failure(UserErrors.NotFoundByEmail(userEmail));
         }
 
+        // TODO check if tagIds exist in DB
+        var tags = await tagsRepository.GetByIdListAsync(createTodoDto.TagIds);
+
         DateTime endDate = CalculateEndDate(createTodoDto.Type, createAt);
 
         var todo = new Todo
@@ -61,23 +69,23 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
             EndDate = endDate,
             State = State.New,
             DateState = DateTime.Now,
-            Description = createTodoDto.Description
+            Description = createTodoDto.Description,
+            Tags = tags.ToList()
         };
 
         user.Todos.Add(todo);
         await userRepository.SaveChangesAsync();
         return Result<int>.Success(todo.Id);
-
     }
 
     public async Task<Result<object>> UpdateTodoAsync(UpdateTodoDto updateTodoDto, string userEmail, int todoId)
     {
-        
-        var todoQueryResult = await GetTodoByUserEmailAndtodoId(userEmail, todoId);
+        var todoQueryResult = await GetTodoByUserEmailAndTodoId(userEmail, todoId);
         if (!todoQueryResult.IsSuccess)
         {
             return Result<object>.Failure(todoQueryResult.Error);
         }
+
         var todo = todoQueryResult.Value;
 
         if (todo!.State == State.Completed)
@@ -90,19 +98,28 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
             todo.Type = updateTodoDto.Type;
             todo.EndDate = CalculateEndDate(todo.Type, todo.CreateAt);
         }
+
         todo.Priority = updateTodoDto.Priority;
         todo.Description = updateTodoDto.Description;
+        var tags = await tagsRepository.GetByIdListAsync(updateTodoDto.TagIds);
+        if(tags is not null)
+        {
+            //var list = todo.Tags.Where(t => !tags.Contains(t)).ToList();
+            todo.Tags.RemoveAll(t => !tags.Contains(t));
+            todo.Tags.AddRange(tags);
+        }
         await todosRepository.SaveChangesAsync();
-        return null;
+        return default;
     }
 
     public async Task<Result<int>> ChangeTodoState(string userEmail, int todoId, State state)
     {
-        var todoQueryResult = await GetTodoByUserEmailAndtodoId(userEmail, todoId);
+        var todoQueryResult = await GetTodoByUserEmailAndTodoId(userEmail, todoId);
         if (!todoQueryResult.IsSuccess)
         {
             return Result<int>.Failure(todoQueryResult.Error);
         }
+
         var todo = todoQueryResult.Value;
 
         State? newState = todo.State switch
@@ -125,22 +142,26 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
         {
             return Result<int>.Failure(TodoErrors.CantChangeState(todoId, todo.State, state));
         }
+
         await todosRepository.SaveChangesAsync();
         return Result<int>.Success(todo.Id);
     }
+
     public async Task<Result<int>> ExtendTodoEndDate(string userEmail, int todoId, ExtendBy days)
     {
-        var todoQueryResult = await GetTodoByUserEmailAndtodoId(userEmail, todoId);
+        var todoQueryResult = await GetTodoByUserEmailAndTodoId(userEmail, todoId);
         if (!todoQueryResult.IsSuccess)
         {
             return Result<int>.Failure(todoQueryResult.Error);
         }
+
         var todo = todoQueryResult.Value;
 
         if (todo!.State == State.Completed)
         {
             return Result<int>.Failure(TodoErrors.CantModifyCompleted(todo.Id));
         }
+
         todo!.EndDate = todo!.EndDate.AddDays(days.days);
         todo.ChangeEndDateRationale = days.extendByDayRationale;
         todo.History.Add($"Extend by {days.days} until {todo!.EndDate} - {todo.ChangeEndDateRationale}");
@@ -150,11 +171,12 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
 
     public async Task<Result<object>> DeleteTodoAsync(string userEmail, int todoId)
     {
-        var todoQueryResult = await GetTodoByUserEmailAndtodoId(userEmail, todoId);
+        var todoQueryResult = await GetTodoByUserEmailAndTodoId(userEmail, todoId);
         if (!todoQueryResult.IsSuccess)
         {
             return Result<object>.Failure(todoQueryResult.Error);
         }
+
         var todo = todoQueryResult.Value;
 
         if (todo!.State is not State.Completed)
@@ -168,7 +190,7 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
 
         return null;
     }
-    
+
     private static DateTime CalculateEndDate(TodoType type, DateTime createAt)
     {
         return type switch
@@ -180,18 +202,21 @@ public class TodosService(IUserRepository userRepository, ITodosRepository todos
         };
     }
 
-    private async Task<Result<Todo>> GetTodoByUserEmailAndtodoId(string userEmail, int todoId)
+    private async Task<Result<Todo>> GetTodoByUserEmailAndTodoId(string userEmail, int todoId)
     {
         var user = await userRepository.GetUserAsync(userEmail);
         if (user is null)
         {
             return Result<Todo>.Failure(UserErrors.NotFoundByEmail(userEmail));
         }
+
         var todo = await todosRepository.GetTodoByUserIdAndTodoIdAsync(user.Id, todoId);
         if (todo is null)
         {
             return Result<Todo>.Failure(TodoErrors.NotFoundTodoIdForUserId(user.Id, todoId));
         }
+        var tags = todo.Tags;
+
         return Result<Todo>.Success(todo);
     }
 }

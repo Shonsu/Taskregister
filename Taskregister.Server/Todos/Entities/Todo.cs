@@ -17,5 +17,5 @@ public class Todo
     public string? ChangeEndDateRationale { get; set; }
     public int UserId { get; set; }
     public List<string> History { get; set; } = [];
-    public List<Tag> Tags { get; set; }
+    public List<Tag> Tags { get; set; } = [];
 }
