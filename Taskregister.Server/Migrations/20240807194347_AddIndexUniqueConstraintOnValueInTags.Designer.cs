@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Taskregister.Server.Persistence;
 
@@ -11,9 +12,11 @@ using Taskregister.Server.Persistence;
 namespace Taskregister.Server.Migrations
 {
     [DbContext(typeof(TodosRegisterDbContext))]
-    partial class TaskRegisterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240807194347_AddIndexUniqueConstraintOnValueInTags")]
+    partial class AddIndexUniqueConstraintOnValueInTags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,13 +48,13 @@ namespace Taskregister.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("Value")
                         .IsUnique();
 
                     b.ToTable("Tags");

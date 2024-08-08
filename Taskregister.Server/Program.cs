@@ -3,6 +3,8 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Taskregister.Server.Persistence;
+using Taskregister.Server.Tags.Repository;
+using Taskregister.Server.Tags.Services;
 using Taskregister.Server.Todos.Repository;
 using Taskregister.Server.Todos.Services;
 using Taskregister.Server.User.Repository;
@@ -19,6 +21,8 @@ builder.Services.AddDbContext<TodosRegisterDbContext>(options => options.UseSqlS
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITodosRepository, TodosRepository>();
 builder.Services.AddScoped<ITodosService, TodosService>();
+builder.Services.AddScoped<ITagsService, TagsService>();
+builder.Services.AddScoped<ITagsRepository, TagsRepository>();
 
 var applicationAssembly = typeof(Program).Assembly;
 builder.Services.AddValidatorsFromAssembly(applicationAssembly).AddFluentValidationAutoValidation();

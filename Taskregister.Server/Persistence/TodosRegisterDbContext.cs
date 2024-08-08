@@ -26,6 +26,7 @@ namespace Taskregister.Server.Persistence
                 eb.Property(t => t.State).HasConversion(new EnumToStringConverter<State>());
                 eb.HasMany(t => t.Tags).WithMany(t => t.Todos);
             });
+            modelBuilder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
             // modelBuilder.Entity<Todo>().ToTable("Todos").HasKey(k => k.Id);
         }
 
