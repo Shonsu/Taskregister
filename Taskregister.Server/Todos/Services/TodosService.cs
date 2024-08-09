@@ -16,10 +16,10 @@ public interface ITodosService
     Task<Result<Todo>> GetTodoForUser(string userEmail, int todoId);
     Task<Result<IReadOnlyList<Todo>>> GetTodosForUser(string userEmail, QueryParameters parameters);
     Task<Result<int>> CreateTodoAsync(CreateTodoDto createTodoDto, string userEmail);
-    Task<Result<object>> UpdateTodoAsync(UpdateTodoDto updateTodoDto, string userEmail, int todoId);
+    Task<Result> UpdateTodoAsync(UpdateTodoDto updateTodoDto, string userEmail, int todoId);
     Task<Result<int>> ChangeTodoState(string userEmail, int todoId, State state);
     Task<Result<int>> ExtendTodoEndDate(string userEmail, int todoId, ExtendBy days);
-    Task<Result<object>> DeleteTodoAsync(string userEmail, int todoId);
+    Task<Result> DeleteTodoAsync(string userEmail, int todoId);
 }
 
 public class TodosService(
@@ -78,19 +78,19 @@ public class TodosService(
         return Result<int>.Success(todo.Id);
     }
 
-    public async Task<Result<object>> UpdateTodoAsync(UpdateTodoDto updateTodoDto, string userEmail, int todoId)
+    public async Task<Result> UpdateTodoAsync(UpdateTodoDto updateTodoDto, string userEmail, int todoId)
     {
         var todoQueryResult = await GetTodoByUserEmailAndTodoId(userEmail, todoId);
         if (!todoQueryResult.IsSuccess)
         {
-            return Result<object>.Failure(todoQueryResult.Error);
+            return Result.Failure(todoQueryResult.Error);
         }
 
         var todo = todoQueryResult.Value;
 
         if (todo!.State == State.Completed)
         {
-            return Result<object>.Failure(TodoErrors.CantModifyCompleted(todo.Id));
+            return Result.Failure(TodoErrors.CantModifyCompleted(todo.Id));
         }
 
         if (todo.Type != updateTodoDto.Type)
@@ -109,7 +109,7 @@ public class TodosService(
             todo.Tags.AddRange(tags);
         }
         await todosRepository.SaveChangesAsync();
-        return default;
+        return Result.Success();;
     }
 
     public async Task<Result<int>> ChangeTodoState(string userEmail, int todoId, State state)
@@ -169,12 +169,12 @@ public class TodosService(
         return Result<int>.Success(todo.Id);
     }
 
-    public async Task<Result<object>> DeleteTodoAsync(string userEmail, int todoId)
+    public async Task<Result> DeleteTodoAsync(string userEmail, int todoId)
     {
         var todoQueryResult = await GetTodoByUserEmailAndTodoId(userEmail, todoId);
         if (!todoQueryResult.IsSuccess)
         {
-            return Result<object>.Failure(todoQueryResult.Error);
+            return Result.Failure(todoQueryResult.Error);
         }
 
         var todo = todoQueryResult.Value;
@@ -185,10 +185,10 @@ public class TodosService(
         }
         else
         {
-            return Result<object>.Failure(TodoErrors.CantDeleteCompleted(todo.Id));
+            return Result.Failure(TodoErrors.CantDeleteCompleted(todo.Id));
         }
 
-        return null;
+        return Result.Success();;
     }
 
     private static DateTime CalculateEndDate(TodoType type, DateTime createAt)

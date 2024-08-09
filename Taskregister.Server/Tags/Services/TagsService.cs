@@ -52,6 +52,11 @@ public class TagsService(ITagsRepository tagsRepository) : ITagsService
         {
             throw new  NotFoundException(nameof(Tag), tagId.ToString());
         }
+        var tagNameExist = await tagsRepository.GetByNameAsync(tag.Name);
+        if (tagNameExist is not null)
+        {
+            throw new ArgumentException($"Tag with name {tag.Name} already exists.");
+        }
         tagExist.Name = tag.Name;
         await tagsRepository.UpdateAsync(tagExist);
         return tagExist.Id;

@@ -55,14 +55,14 @@ public class TodosController(ILogger<TodosController> logger, ITodosService todo
         [FromRoute] int taskId)
     {
         var result = await todosService.UpdateTodoAsync(updateTodoDto, userEmail, taskId);
-        return result.Match(onSuccess: (r)=> Ok(r), onFailure: e=>BadRequest(e));
+        return result.Match(onSuccess: NoContent, onFailure: BadRequest);
     }
 
     [HttpDelete("{userEmail}/[controller]/{taskId}")]
     public async Task<IActionResult> DeleteTask([FromRoute] string userEmail, [FromRoute] int taskId)
     {
         var result = await todosService.DeleteTodoAsync(userEmail, taskId);
-        return result.Match(onSuccess: Ok, onFailure: error => BadRequest(error));
+        return result.Match(onSuccess: NoContent, onFailure: BadRequest);
         // return NoContent();
     }
 

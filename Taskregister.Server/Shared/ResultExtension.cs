@@ -10,11 +10,11 @@ public static class ResultExtension
     {
         return result.IsSuccess ? onSuccess(result.Value) : onFailure(result.Error);
     }
-    
-    // public static ActionResult Match<T>(this Result<T> result,
-    //         Func<NoContentResult> onSuccess,
-    //         Func<Error, ObjectResult> onFailure)
-    //     {
-    //         return result.IsSuccess ? onSuccess() : onFailure(result.Error);
-    //     }
+
+    public static ActionResult Match(this Result result,
+        Func<NoContentResult> onSuccess,
+        Func<Error, ObjectResult> onFailure)
+    {
+        return result.IsSuccess ? onSuccess() : onFailure(result.Error);
+    }
 }
