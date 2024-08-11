@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Taskregister.Server.Persistence;
+using Taskregister.Server.Tags.Entities;
 using Taskregister.Server.Todos.Controller.Dto;
 using Taskregister.Server.Todos.Entities;
 
@@ -18,6 +19,7 @@ public interface ITodosRepository
     Task Delete(Todo todo);
 
     Task<IReadOnlyList<Todo>> GetAllMatchingTodoForUser(User.Entities.User user, QueryParameters parameters);
+    Task<bool> TodoExistByTag(Tag tag);
 }
 
 public class TodosRepository(TodosRegisterDbContext dbContext, ILogger<TodosRepository> logger) : ITodosRepository
@@ -70,6 +72,12 @@ public class TodosRepository(TodosRegisterDbContext dbContext, ILogger<TodosRepo
     {
         return await dbContext.Todos.Include(t => t.Tags).Where(t => t.Id == taskId && t.UserId == userId)
             .SingleOrDefaultAsync();
+    }
+
+    public async Task<bool> TodoExistByTag(Tag tag)
+    {
+        //return  dbContext.Todos.AnyAsync(t => t.Tags.Contains(tag));
+        return await dbContext.Todos.AnyAsync(t => t.Tags.Any(tg => tg.Id == tag.Id));
     }
 
     public async Task SaveChangesAsync() => await dbContext.SaveChangesAsync();

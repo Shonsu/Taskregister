@@ -24,7 +24,7 @@ public class TagsController(ITagsService tagsService) : ControllerBase
     }
 
     [HttpDelete("{tagId}")]
-    public async Task<IActionResult> CreateTag([FromRoute] int tagId)
+    public async Task<IActionResult> DeleteTag([FromRoute] int tagId)
     {
         var deletedTagId = await tagsService.DeleteTag(tagId);
         return Ok(deletedTagId);

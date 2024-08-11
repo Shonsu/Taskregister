@@ -2,6 +2,7 @@ using Taskregister.Server.Exceptions;
 using Taskregister.Server.Tags.Controller.Dtos;
 using Taskregister.Server.Tags.Entities;
 using Taskregister.Server.Tags.Repository;
+using Taskregister.Server.Todos.Repository;
 
 namespace Taskregister.Server.Tags.Services;
 
@@ -14,7 +15,7 @@ public interface ITagsService
 
 }
 
-public class TagsService(ITagsRepository tagsRepository) : ITagsService
+public class TagsService(ITagsRepository tagsRepository, ITodosRepository todosRepository) : ITagsService
 {
     public async Task<IReadOnlyList<TagDto>> ListTags()
     {
@@ -37,11 +38,18 @@ public class TagsService(ITagsRepository tagsRepository) : ITagsService
     public async Task<int> DeleteTag(int tagId)
     {
         var tagExist = await tagsRepository.GetByIdAsync(tagId);
+       
         if (tagExist is null)
         {
             throw new  NotFoundException(nameof(Tag), tagId.ToString());
         }
 
+        var todoExistByTag = await todosRepository.TodoExistByTag(tagExist);
+        if (todoExistByTag)
+        {
+            throw new ArgumentException($"Tag with id {tagExist.Id} is assigned Todo.");
+        }
+        
         await tagsRepository.DeleteAsync(tagExist);
         return tagExist.Id;
     }
