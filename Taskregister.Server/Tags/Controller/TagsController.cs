@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Taskregister.Server.Shared;
 using Taskregister.Server.Tags.Controller.Dtos;
 using Taskregister.Server.Tags.Entities;
 using Taskregister.Server.Tags.Services;
@@ -10,30 +11,37 @@ namespace Taskregister.Server.Tags.Controller;
 public class TagsController(ITagsService tagsService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<TagDto>>> GetAllAsync()
+    public async Task<ActionResult<Result<IReadOnlyList<TagDto>>>> GetAllAsync()
     {
-        var readOnlyList = await tagsService.ListTags();
-        return Ok(readOnlyList);
+        var tags = await tagsService.ListTags();
+        return Result<IReadOnlyList<TagDto>>.Success(tags);
     }
-    
+
+    [HttpGet("{tagId}")]
+    public async Task<ActionResult<Tag>> GetById([FromRoute] int tagId)
+    {
+        var tag = await tagsService.GetTagById(tagId);
+        return tag.Match(onSuccess: Ok, onFailure: NotFound);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateTag([FromBody] TagDto tagDto)
     {
-        var tagId = await tagsService.CreateTag(new Tag { Name = tagDto.Name });
-        return Ok(tagId);
+        var result = await tagsService.CreateTag(new Tag { Name = tagDto.Name });
+        return result.Match(onSuccess: r => Ok(r), onFailure: e => BadRequest(e));
     }
 
     [HttpDelete("{tagId}")]
-    public async Task<IActionResult> DeleteTag([FromRoute] int tagId)
+    public async Task<ActionResult<Result<int>>> DeleteTag([FromRoute] int tagId)
     {
-        var deletedTagId = await tagsService.DeleteTag(tagId);
-        return Ok(deletedTagId);
+        var result = await tagsService.DeleteTag(tagId);
+        return result.Match(onSuccess: r => Ok(r), onFailure: NotFound);
     }
 
     [HttpPut("{tagId}")]
-    public async Task<IActionResult> UpdateTag([FromBody] TagDto tagDto, [FromRoute] int tagId)
+    public async Task<ActionResult<Result<int>>> UpdateTag([FromBody] TagDto tagDto, [FromRoute] int tagId)
     {
-        var updateTagId = await tagsService.UpdateTag(tagId, new Tag { Name = tagDto.Name });
-        return Ok(updateTagId);
+        var result = await tagsService.UpdateTag(tagId, new Tag { Name = tagDto.Name });
+        return result.Match(onSuccess: r => Ok(r), onFailure: NotFound);
     }
 }

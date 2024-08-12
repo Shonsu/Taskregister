@@ -12,29 +12,19 @@ namespace Taskregister.Server.Todos.Controller;
 public class TodosController(ILogger<TodosController> logger, ITodosService todosService) : ControllerBase
 {
     [HttpGet("{userEmail}/[controller]")]
-    public async Task<ActionResult<IReadOnlyList<Todo>>> GetAllTasks([FromRoute] string userEmail,
+    public async Task<ActionResult<IReadOnlyList<Todo>>> GetAllTasksForUser([FromRoute] string userEmail,
         [FromQuery] QueryParameters query)
     {
         var result = await todosService.GetTodosForUser(userEmail, query);
         return result.Match(onSuccess: Ok, onFailure: NotFound);
-
-        //return result.Match<IEnumerable<Entities.Task>>(onSuccess: result => Ok(result),
-        // onFailure: error => NotFound(error));
-
-        //if (result.IsFailure)
-        //{
-        //    return NotFound(result.Error);
-        //}
-        //return Ok(result.Value);
     }
 
     [HttpGet("{userEmail}/[controller]/{taskId}")]
     public async Task<ActionResult<Todo>> GetTaskForUser([FromRoute] string userEmail, [FromRoute] int taskId)
     {
         var result = await todosService.GetTodoForUser(userEmail, taskId);
-        
-        // return Ok(result.Value);
-        return result.Match(onSuccess: Ok, onFailure: BadRequest);
+
+        return result.Match(onSuccess: Ok, onFailure: NotFound);
     }
 
     [HttpPost("{userEmail}/[controller]")]

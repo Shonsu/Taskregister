@@ -102,14 +102,17 @@ public class TodosService(
         todo.Priority = updateTodoDto.Priority;
         todo.Description = updateTodoDto.Description;
         var tags = await tagsRepository.GetByIdListAsync(updateTodoDto.TagIds);
-        if(tags is not null)
-        {
-            //var list = todo.Tags.Where(t => !tags.Contains(t)).ToList();
-            todo.Tags.RemoveAll(t => !tags.Contains(t));
-            todo.Tags.AddRange(tags);
-        }
+        todo.Tags.RemoveAll(t => !tags.Contains(t));
+        //todo.Tags.RemoveAll((x)=>true);
+        // if(tags.Any())
+        // {
+        //var list = todo.Tags.Where(t => !tags.Contains(t)).ToList();
+        todo.Tags.AddRange(tags);
+        // }
+
         await todosRepository.SaveChangesAsync();
-        return Result.Success();;
+        return Result.Success();
+        ;
     }
 
     public async Task<Result<int>> ChangeTodoState(string userEmail, int todoId, State state)
@@ -188,7 +191,8 @@ public class TodosService(
             return Result.Failure(TodoErrors.CantDeleteCompleted(todo.Id));
         }
 
-        return Result.Success();;
+        return Result.Success();
+        ;
     }
 
     private static DateTime CalculateEndDate(TodoType type, DateTime createAt)
@@ -215,6 +219,7 @@ public class TodosService(
         {
             return Result<Todo>.Failure(TodoErrors.NotFoundTodoIdForUserId(user.Id, todoId));
         }
+
         var tags = todo.Tags;
 
         return Result<Todo>.Success(todo);
