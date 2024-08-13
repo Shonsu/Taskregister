@@ -11,10 +11,10 @@ namespace Taskregister.Server.Tags.Controller;
 public class TagsController(ITagsService tagsService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<Result<IReadOnlyList<TagDto>>>> GetAllAsync()
+    public async Task<ActionResult<IReadOnlyList<TagDto>>> GetAllAsync()
     {
         var tags = await tagsService.ListTags();
-        return Result<IReadOnlyList<TagDto>>.Success(tags);
+        return Ok(tags);
     }
 
     [HttpGet("{tagId}")]
