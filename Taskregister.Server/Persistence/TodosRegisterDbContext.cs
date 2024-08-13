@@ -11,6 +11,7 @@ namespace Taskregister.Server.Persistence
         internal DbSet<User.Entities.User> Users { get; set; }
         internal DbSet<Todo> Todos { get; set; }
         internal DbSet<Tag> Tags { get; set; }
+        internal DbSet<TagTodo> TagTodo { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -24,7 +25,11 @@ namespace Taskregister.Server.Persistence
             modelBuilder.Entity<Todo>(eb =>
             {
                 eb.Property(t => t.State).HasConversion(new EnumToStringConverter<State>());
-                eb.HasMany(t => t.Tags).WithMany(t => t.Todos);
+                eb.HasMany(t => t.Tags).WithMany(t => t.Todos).UsingEntity<TagTodo>(
+                    r => r.HasOne<Tag>().WithMany().OnDelete(DeleteBehavior.Restrict),
+                    l => l.HasOne<Todo>().WithMany(),
+                    tt => tt.HasKey(x => new { x.TagsId, x.TodosId })
+                );
             });
             modelBuilder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
             // modelBuilder.Entity<Todo>().ToTable("Todos").HasKey(k => k.Id);
