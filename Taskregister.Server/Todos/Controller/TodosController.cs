@@ -34,7 +34,7 @@ public class TodosController(ILogger<TodosController> logger, ITodosService todo
         var result = await todosService.CreateTodoAsync(createTodoDto, userEmail);
         return result.Match(
             onSuccess: r =>
-                CreatedAtAction(nameof(GetTaskForUser), new { userEmail, taskId = r }, null),
+                CreatedAtAction(nameof(GetTaskForUser), new { userEmail, taskId = r }, r),
             onFailure: error => BadRequest(error));
 
         // return Ok(taskId);

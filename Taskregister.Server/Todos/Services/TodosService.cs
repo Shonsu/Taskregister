@@ -1,4 +1,5 @@
 ﻿using Taskregister.Server.Shared;
+using Taskregister.Server.Tags.Entities;
 using Taskregister.Server.Tags.Repository;
 using Taskregister.Server.Todos.Constants;
 using Taskregister.Server.Todos.Controller.Dto;
@@ -57,7 +58,11 @@ public class TodosService(
         }
 
         // TODO check if tagIds exist in DB
-        var tags = await tagsRepository.GetByIdListAsync(createTodoDto.TagIds);
+        IReadOnlyList<Tag> tags = [];
+        if (createTodoDto.TagIds is not null)
+        {
+            tags = await tagsRepository.GetByIdListAsync(createTodoDto.TagIds);
+        }
 
         DateTime endDate = CalculateEndDate(createTodoDto.Type, createAt);
 
